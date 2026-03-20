@@ -1,0 +1,80 @@
+name: Deploy BloomStore
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Sync code to app directory
+        run: |
+          rsync -a \
+            --exclude node_modules \
+            --exclude '.env' \
+            --exclude 'backend/node_modules' \
+            --exclude 'backend/dist' \
+            --exclude 'backend/public/uploads' \
+            --exclude 'build' \
+            --exclude 'logs' \
+            --exclude '.git' \
+            $GITHUB_WORKSPACE/ /var/www/bloomstore/
+
+      - name: Setup environment
+        run: |
+          cd /var/www/bloomstore
+          if [ -f .env ]; then
+            set -a
+            source .env
+            set +a
+          fi
+          # Symlink .env for backend (dotenv/config in main.ts)
+          ln -sf /var/www/bloomstore/.env /var/www/bloomstore/backend/.env
+
+      - name: Start database
+        run: |
+          cd /var/www/bloomstore
+          docker compose up -d
+
+      - name: Install & build backend + seed
+        run: |
+          cd /var/www/bloomstore/backend
+          rm -rf dist
+          npm install --production=false
+          npm run build
+          npx ts-node -r tsconfig-paths/register src/seed.ts 2>&1 || echo '⏭️ Seed skipped'
+
+      - name: Install & build frontend
+        env:
+          CI: false
+        run: |
+          cd /var/www/bloomstore
+          rm -rf build
+          npm install 2>&1 | tee /tmp/frontend-install.log
+          npm run build 2>&1 | tee /tmp/frontend-build.log
+
+      - name: Create directories
+        run: |
+          mkdir -p /var/www/bloomstore/backend/public/uploads
+          mkdir -p /var/www/bloomstore/logs
+
+      - name: Restart backend (PM2)
+        run: |
+          cd /var/www/bloomstore
+          pm2 describe bloomstore-api > /dev/null 2>&1 && pm2 restart ecosystem.config.js || pm2 start ecosystem.config.js
+          pm2 save
+
+      - name: Reload Nginx
+        run: |
+          sudo nginx -t && sudo systemctl reload nginx
+
+      - name: Health check
+        run: |
+          sleep 10
+          curl -sf http://localhost:3000/api/categories > /dev/null && echo "✅ API is healthy" || echo "⚠️ API health check failed, check logs with: pm2 logs bloomstore-api"
+          echo "✅ Deployment complete!"

@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BloomStore Admin</title>
+  <link rel="stylesheet" href="admin.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+
+<body>
+
+  <!-- Login -->
+  <div class="login-overlay" id="loginOverlay">
+    <div class="login-box">
+      <h1><i class="fas fa-leaf"></i> BloomStore</h1>
+      <p>Admin Dashboard</p>
+      <div class="login-error" id="loginError">Sai tên đăng nhập hoặc mật khẩu</div>
+      <input type="text" id="loginUsername" placeholder="Tên đăng nhập" value="admin">
+      <input type="password" id="loginPassword" placeholder="Mật khẩu">
+      <button onclick="doLogin()">Đăng nhập</button>
+    </div>
+  </div>
+
+  <!-- App -->
+  <div class="app" id="app" style="display:none">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <h2><i class="fas fa-leaf"></i> <span>BloomStore</span></h2>
+        <small>Admin Panel</small>
+      </div>
+      <div class="nav-item active" onclick="showPage('dashboard')"><i class="fas fa-chart-pie"></i>
+        <span>Dashboard</span>
+      </div>
+      <div class="nav-item" onclick="showPage('products')"><i class="fas fa-box"></i> <span>Sản phẩm</span></div>
+      <div class="nav-item" onclick="showPage('categories')"><i class="fas fa-tags"></i> <span>Danh mục</span></div>
+      <div class="nav-item" onclick="showPage('reviews')"><i class="fas fa-star"></i> <span>Đánh giá</span> <span
+          class="nav-badge" id="reviewBadge" style="display:none">0</span></div>
+      <div class="nav-divider"></div>
+      <div class="nav-item" onclick="showPage('posts')"><i class="fas fa-blog"></i> <span>Bài viết</span></div>
+      <div class="nav-item" onclick="showPage('gallery')"><i class="fas fa-images"></i> <span>Bộ sưu tập</span></div>
+      <div class="nav-item" onclick="showPage('settings')"><i class="fas fa-cog"></i> <span>Cài đặt</span></div>
+      <div class="nav-item" onclick="showPage('password')"><i class="fas fa-lock"></i> <span>Đổi mật khẩu</span></div>
+      <div class="nav-item" onclick="window.open('/api/docs','_blank')"><i class="fas fa-book"></i> <span>API
+          Docs</span></div>
+      <div class="nav-bottom">
+        <div class="nav-item" onclick="doLogout()"><i class="fas fa-sign-out-alt"></i> <span>Đăng xuất</span></div>
+      </div>
+    </aside>
+
+    <main class="main">
+
+      <!-- Top Bar -->
+      <div class="top-bar">
+        <div class="top-bar-left">
+          <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+          <div class="page-breadcrumb">Quản lý / <span id="currentPageTitle">Dashboard</span></div>
+        </div>
+        <div class="top-bar-right">
+          <div class="top-search">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Tìm kiếm..." id="globalSearch">
+          </div>
+          <button class="top-bar-btn" title="Thông báo">
+            <i class="fas fa-bell"></i>
+            <span class="notif-dot"></span>
+          </button>
+          <button class="top-bar-btn" title="Xem trang chủ" onclick="window.open('/','_blank')">
+            <i class="fas fa-external-link-alt"></i>
+          </button>
+          <div class="user-dropdown" onclick="doLogout()">
+            <div class="user-avatar">AD</div>
+            <div style="line-height:1.2">
+              <span>Admin</span><br>
+              <small>Quản trị viên</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="content-area">
+
+        <!-- Dashboard -->
+        <div class="page-section active" id="page-dashboard">
+          <div class="welcome-section">
+            <div class="welcome-text">
+              <h1>👋 Xin chào, Admin!</h1>
+              <p id="welcomeDate">Hôm nay là thứ...</p>
+            </div>
+            <div class="quick-actions">
+              <button class="btn btn-primary" onclick="showPage('products'); openProductModal()"><i
+                  class="fas fa-plus"></i>
+                Thêm sản phẩm</button>
+              <button class="btn"
+                style="background:var(--bg-secondary);color:var(--text-secondary);border:1px solid var(--border)"
+                onclick="window.open('/','_blank')"><i class="fas fa-eye"></i> Xem shop</button>
+            </div>
+          </div>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon" style="background:rgba(139,69,19,0.15);color:var(--accent-light)"><i
+                  class="fas fa-box"></i></div>
+              <div class="stat-value" id="statProducts">0</div>
+              <div class="stat-label">Sản phẩm <span class="stat-trend up"><i class="fas fa-arrow-up"></i> 12%</span>
+              </div>
+              <div class="sparkline"><svg viewBox="0 0 100 30" preserveAspectRatio="none">
+                  <polyline fill="none" stroke="rgba(139,69,19,0.6)" stroke-width="2"
+                    points="0,25 15,20 30,22 45,15 60,18 75,10 100,5" />
+                </svg></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon" style="background:rgba(59,130,246,0.15);color:var(--info)"><i
+                  class="fas fa-tags"></i>
+              </div>
+              <div class="stat-value" id="statCategories">0</div>
+              <div class="stat-label">Danh mục</div>
+              <div class="sparkline"><svg viewBox="0 0 100 30" preserveAspectRatio="none">
+                  <polyline fill="none" stroke="rgba(59,130,246,0.6)" stroke-width="2"
+                    points="0,20 20,18 40,22 60,15 80,12 100,10" />
+                </svg></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon" style="background:rgba(245,158,11,0.15);color:var(--warning)"><i
+                  class="fas fa-star"></i></div>
+              <div class="stat-value" id="statReviews">0</div>
+              <div class="stat-label">Đánh giá <span class="stat-trend up"><i class="fas fa-arrow-up"></i> 8%</span>
+              </div>
+              <div class="sparkline"><svg viewBox="0 0 100 30" preserveAspectRatio="none">
+                  <polyline fill="none" stroke="rgba(245,158,11,0.6)" stroke-width="2"
+                    points="0,28 20,20 40,25 60,15 80,18 100,8" />
+                </svg></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon" style="background:rgba(34,197,94,0.15);color:var(--success)"><i
+                  class="fas fa-dollar-sign"></i></div>
+              <div class="stat-value" id="statAvgPrice">0</div>
+              <div class="stat-label">Giá TB (₫) <span class="stat-trend down"><i class="fas fa-arrow-down"></i>
+                  3%</span>
+              </div>
+              <div class="sparkline"><svg viewBox="0 0 100 30" preserveAspectRatio="none">
+                  <polyline fill="none" stroke="rgba(34,197,94,0.6)" stroke-width="2"
+                    points="0,10 20,15 40,12 60,20 80,18 100,22" />
+                </svg></div>
+            </div>
+          </div>
+          <h2 style="font-size:1.1rem;margin-bottom:1rem">Sản phẩm mới nhất</h2>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Hình</th>
+                <th>Tên</th>
+                <th>Danh mục</th>
+                <th>Giá</th>
+                <th>Đánh giá</th>
+              </tr>
+            </thead>
+            <tbody id="dashboardProducts"></tbody>
+          </table>
+        </div>
+
+        <!-- Products -->
+        <div class="page-section" id="page-products">
+          <div class="page-header">
+            <h1>Sản phẩm</h1>
+            <button class="btn btn-primary" onclick="openProductModal()"><i class="fas fa-plus"></i> Thêm sản
+              phẩm</button>
+          </div>
+          <div class="table-toolbar">
+            <div class="table-search">
+              <i class="fas fa-search"></i>
+              <input type="text" placeholder="Tìm sản phẩm..." id="productSearch" oninput="filterProducts()">
+            </div>
+            <div class="table-count" id="productCount"></div>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Hình</th>
+                <th>Tên</th>
+                <th>Danh mục</th>
+                <th>Giá</th>
+                <th>Giá gốc</th>
+                <th>Badge</th>
+                <th>Đánh giá</th>
+                <th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="productsTable"></tbody>
+          </table>
+        </div>
+
+        <!-- Categories -->
+        <div class="page-section" id="page-categories">
+          <div class="page-header">
+            <h1>Danh mục</h1>
+            <button class="btn btn-primary" onclick="openCategoryModal()"><i class="fas fa-plus"></i> Thêm danh
+              mục</button>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Hình</th>
+                <th>Slug</th>
+                <th>Tên</th>
+                <th>Mô tả</th>
+                <th>Hiện menu</th>
+                <th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="categoriesTable"></tbody>
+          </table>
+        </div>
+
+        <!-- Reviews -->
+        <div class="page-section" id="page-reviews">
+          <div class="page-header">
+            <h1>Đánh giá</h1>
+          </div>
+          <div class="table-toolbar">
+            <div class="table-search">
+              <i class="fas fa-search"></i>
+              <input type="text" placeholder="Tìm đánh giá..." id="reviewSearch" oninput="filterReviews()">
+            </div>
+            <div class="table-count" id="reviewCount"></div>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Sản phẩm</th>
+                <th>Người đánh giá</th>
+                <th>Điểm</th>
+                <th>Bình luận</th>
+                <th>Ngày</th>
+                <th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="reviewsTable"></tbody>
+          </table>
+        </div>
+
+        <!-- Posts -->
+        <div class="page-section" id="page-posts">
+          <div class="page-header">
+            <h1>Bài viết Blog</h1>
+            <button class="btn btn-primary" onclick="openPostModal()"><i class="fas fa-plus"></i> Tạo bài viết</button>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tiêu đề</th>
+                  <th>Trạng thái</th>
+                  <th>Tags</th>
+                  <th>Ngày đăng</th>
+                  <th>Thao tác</th>
+                </tr>
+              </thead>
+              <tbody id="postsTableBody">
+                <tr>
+                  <td colspan="5" class="empty-state"><i class="fas fa-spinner fa-spin"></i> Đang tải...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Post Modal -->
+        <div class="modal-overlay" id="postModal" style="display:none">
+          <div class="modal" style="max-width:800px">
+            <div class="modal-header">
+              <h2 id="postModalTitle">Tạo bài viết mới</h2>
+              <button class="modal-close" onclick="closePostModal()">&times;</button>
+            </div>
+            <div class="modal-body" style="max-height:70vh;overflow-y:auto">
+              <input type="hidden" id="postId">
+              <div class="form-group"><label>Tiêu đề *</label><input id="postTitle" placeholder="Tiêu đề bài viết...">
+              </div>
+              <div class="form-group"><label>Slug (tự động nếu để trống)</label><input id="postSlug"
+                  placeholder="tieu-de-bai-viet"></div>
+              <div class="form-group"><label>Tóm tắt (excerpt)</label><textarea id="postExcerpt" rows="3"
+                  placeholder="Mô tả ngắn cho SEO..."></textarea></div>
+              <div class="form-group"><label>Nội dung *</label><textarea id="postContent" rows="12"
+                  placeholder="Nội dung HTML bài viết..."></textarea></div>
+              <div class="form-group"><label>Ảnh đại diện URL</label><input id="postThumbnail"
+                  placeholder="https://...">
+              </div>
+              <div class="form-group"><label>Tags (phân cách bằng dấu phẩy)</label><input id="postTags"
+                  placeholder="Quận 1, hoa tươi, giao hoa..."></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                <div class="form-group"><label>Meta Title (SEO)</label><input id="postMetaTitle"
+                    placeholder="Tiêu đề SEO..."></div>
+                <div class="form-group"><label>Meta Description (SEO)</label><input id="postMetaDesc"
+                    placeholder="Mô tả SEO..."></div>
+              </div>
+              <div class="form-group" style="display:flex;align-items:center;gap:8px">
+                <input type="checkbox" id="postPublished" style="width:auto">
+                <label for="postPublished" style="margin:0">Xuất bản ngay</label>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn" style="background:var(--bg-secondary);color:var(--text-secondary)"
+                onclick="closePostModal()">Hủy</button>
+              <button class="btn btn-primary" onclick="savePost()"><i class="fas fa-save"></i> Lưu</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gallery -->
+        <div class="page-section" id="page-gallery">
+          <div class="page-header">
+            <h1>Bộ sưu tập ảnh</h1>
+            <button class="btn btn-primary" onclick="openGalleryModal()"><i class="fas fa-plus"></i> Thêm ảnh</button>
+          </div>
+          <div class="table-toolbar">
+            <div class="table-count" id="galleryCount"></div>
+          </div>
+          <div class="gallery-grid" id="galleryGrid"
+            style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px"></div>
+        </div>
+
+        <!-- Gallery Modal -->
+        <div class="modal-overlay" id="galleryModal">
+          <div class="modal" style="width:500px">
+            <div class="modal-header">
+              <h3 id="galleryModalTitle">Thêm ảnh</h3>
+              <button class="modal-close" onclick="closeModal('galleryModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+              <input type="hidden" id="galleryItemId">
+              <div class="form-group"><label>Tiêu đề *</label><input id="galleryTitle" placeholder="Tên ảnh..."></div>
+              <div class="form-group"><label>Mô tả</label><textarea id="galleryDescription" rows="2"
+                  placeholder="Mô tả..."></textarea></div>
+              <div class="form-group"><label>Danh mục</label><input id="galleryCategory"
+                  placeholder="VD: wedding, arrangement..."></div>
+              <div class="form-group">
+                <label>Ảnh <small style="color:var(--text-secondary)">(upload hoặc nhập URL)</small></label>
+                <div class="upload-zone" id="galleryUploadZone"
+                  onclick="document.getElementById('galleryFileInput').click()"
+                  style="padding:16px;text-align:center;border:2px dashed var(--border);border-radius:8px;cursor:pointer;margin-bottom:8px">
+                  <input type="file" id="galleryFileInput" accept="image/*" style="display:none">
+                  <i class="fas fa-cloud-upload-alt"></i> Nhấp để chọn ảnh
+                </div>
+                <input id="galleryImageUrl" placeholder="https://... hoặc tự động sau khi upload">
+                <img id="galleryPreviewImg"
+                  style="max-width:100%;max-height:200px;margin-top:8px;border-radius:8px;display:none">
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn" style="background:var(--bg-secondary);color:var(--text-secondary)"
+                onclick="closeModal('galleryModal')">Hủy</button>
+              <button class="btn btn-primary" onclick="saveGalleryItem()"><i class="fas fa-save"></i> Lưu</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Settings -->
+        <div class="page-section" id="page-settings">
+          <div class="page-header">
+            <h1>Cài đặt</h1>
+            <button class="btn btn-primary" onclick="saveSettings()"><i class="fas fa-save"></i> Lưu thay đổi</button>
+          </div>
+          <div class="settings-grid">
+            <div class="settings-group">
+              <h3><i class="fas fa-store"></i> Thông tin cửa hàng</h3>
+              <div class="form-group"><label>Tên cửa hàng</label><input id="setting_shop_name"></div>
+              <div class="form-group"><label>Slogan</label><input id="setting_slogan"></div>
+              <div class="form-group">
+                <label>Logo URL <small style="color:var(--text-secondary)">(upload hoặc nhập URL)</small></label>
+                <div class="upload-zone" id="settingLogoUploadZone" onclick="document.getElementById('settingLogoFileInput').click()" style="padding:12px;text-align:center;border:2px dashed var(--border);border-radius:8px;cursor:pointer;margin-bottom:8px">
+                  <input type="file" id="settingLogoFileInput" accept="image/*" style="display:none" onchange="handleSettingLogoUpload(this.files)">
+                  <i class="fas fa-cloud-upload-alt"></i> Nhấp để chọn ảnh logo
+                </div>
+                <input id="setting_logo_url" placeholder="https://... hoặc biên dịch khi upload">
+                <img id="settingLogoPreview" style="max-width:200px;max-height:80px;object-fit:contain;margin-top:8px;border-radius:8px;display:none;background:#f5f5f5;padding:8px">
+              </div>
+              <div class="form-group"><label>Favicon URL</label><input id="setting_favicon_url" placeholder="https://..."></div>
+            </div>
+            <div class="settings-group">
+              <h3><i class="fas fa-search"></i> SEO / Meta Tags</h3>
+              <div class="form-group"><label>Meta Title</label><input id="setting_meta_title"></div>
+              <div class="form-group"><label>Meta Description</label><textarea id="setting_meta_description"
+                  rows="3"></textarea></div>
+              <div class="form-group"><label>Meta Keywords</label><input id="setting_meta_keywords"
+                  placeholder="từ khóa 1, từ khóa 2, ..."></div>
+              <div class="form-group"><label>OG Image URL (chia sẻ mạng xã hội)</label><input id="setting_og_image"
+                  placeholder="https://..."></div>
+            </div>
+            <div class="settings-group">
+              <h3><i class="fas fa-shield-alt"></i> Google Search Console & Analytics</h3>
+              <div class="form-group"><label>Google Search Console (mã xác minh)</label><input
+                  id="setting_google_verification" placeholder="Paste mã content từ Google Search Console"></div>
+              <div class="form-group"><label>Bing Webmaster (mã xác minh)</label><input id="setting_bing_verification"
+                  placeholder="Paste mã từ Bing Webmaster Tools"></div>
+              <div class="form-group"><label>Google Analytics ID</label><input id="setting_google_analytics_id"
+                  placeholder="G-XXXXXXXXXX"></div>
+              <div
+                style="background:var(--bg-secondary);padding:12px;border-radius:8px;font-size:0.82rem;color:var(--text-secondary);margin-top:8px">
+                <i class="fas fa-info-circle"></i> <strong>Hướng dẫn:</strong><br>
+                1. Vào <a href="https://search.google.com/search-console" target="_blank">Google Search Console</a><br>
+                2. Thêm property → Chọn xác minh bằng <b>HTML tag</b><br>
+                3. Copy mã <code>content="..."</code> → Paste vào ô trên<br>
+                4. Quay lại Search Console → Xác minh<br>
+                5. Submit sitemap: <code>/api/sitemap.xml</code>
+              </div>
+            </div>
+            <div class="settings-group">
+              <h3><i class="fas fa-phone"></i> Liên hệ</h3>
+              <div class="form-group"><label>Số điện thoại</label><input id="setting_phone"></div>
+              <div class="form-group"><label>Email</label><input id="setting_email" type="email"></div>
+              <div class="form-group"><label>Địa chỉ</label><input id="setting_address"></div>
+              <div class="form-group"><label>Google Map Embed URL</label><input id="setting_google_map_url"
+                  placeholder="https://www.google.com/maps/embed?pb=..."></div>
+            </div>
+            <div class="settings-group">
+              <h3><i class="fas fa-share-alt"></i> Mạng xã hội</h3>
+              <div class="form-group"><label>Zalo URL</label><input id="setting_zalo_url"
+                  placeholder="https://zalo.me/...">
+              </div>
+              <div class="form-group"><label>Facebook URL</label><input id="setting_facebook_url"
+                  placeholder="https://facebook.com/..."></div>
+              <div class="form-group"><label>Instagram URL</label><input id="setting_instagram_url"
+                  placeholder="https://instagram.com/..."></div>
+            </div>
+            <div class="settings-group">
+              <h3><i class="fas fa-bars"></i> Hiển thị menu</h3>
+              <div class="form-group" style="display:flex;align-items:center;gap:8px">
+                <input type="checkbox" id="setting_show_menu_gallery" style="width:auto">
+                <label for="setting_show_menu_gallery" style="margin:0">Bộ sưu tập</label>
+              </div>
+              <div class="form-group" style="display:flex;align-items:center;gap:8px">
+                <input type="checkbox" id="setting_show_menu_blog" style="width:auto">
+                <label for="setting_show_menu_blog" style="margin:0">Blog</label>
+              </div>
+              <div class="form-group" style="display:flex;align-items:center;gap:8px">
+                <input type="checkbox" id="setting_show_menu_contact" style="width:auto">
+                <label for="setting_show_menu_contact" style="margin:0">Liên hệ</label>
+              </div>
+              <div style="background:var(--bg-secondary);padding:10px;border-radius:8px;font-size:0.8rem;color:var(--text-secondary);margin-top:8px">
+                <i class="fas fa-info-circle"></i> Bật/tắt các mục này trên thanh menu chính. Danh mục sản phẩm được quản lý riêng trong phần Danh mục.
+              </div>
+            </div>
+            <div class="settings-group">
+              <h3><i class="fas fa-home"></i> Trang chủ</h3>
+              <div class="form-group" style="display:flex;align-items:center;gap:8px">
+                <input type="checkbox" id="setting_hero_overlay_enabled" style="width:auto" checked>
+                <label for="setting_hero_overlay_enabled" style="margin:0">Hiển thị lớp phủ (overlay) trên hero banner</label>
+              </div>
+              <div style="background:var(--bg-secondary);padding:10px;border-radius:8px;font-size:0.8rem;color:var(--text-secondary);margin-top:8px">
+                <i class="fas fa-info-circle"></i> Khi tắt, hero banner sẽ hiển thị ảnh gốc không có lớp phủ màu.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Change Password Page -->
+        <div class="page-section" id="page-password">
+          <div class="page-header">
+            <h1>Đổi mật khẩu</h1>
+          </div>
+          <div class="settings-grid">
+            <div class="settings-group">
+              <h3><i class="fas fa-lock"></i> Đổi mật khẩu quản trị</h3>
+              <div class="form-group"><label>Mật khẩu hiện tại</label><input id="currentPassword" type="password"
+                  placeholder="Nhập mật khẩu hiện tại"></div>
+              <div class="form-group"><label>Mật khẩu mới</label><input id="newPassword" type="password"
+                  placeholder="Tối thiểu 6 ký tự"></div>
+              <div class="form-group"><label>Xác nhận mật khẩu mới</label><input id="confirmPassword" type="password"
+                  placeholder="Nhập lại mật khẩu mới"></div>
+              <button class="btn btn-primary" onclick="changePassword()" style="margin-top:1rem"><i
+                  class="fas fa-save"></i>
+                Đổi mật khẩu</button>
+            </div>
+          </div>
+        </div>
+      </div><!-- /content-area -->
+    </main>
+  </div>
+
+  <!-- Product Modal -->
+  <div class="modal-overlay" id="productModal">
+    <div class="modal" style="width:700px">
+      <div class="modal-header">
+        <h3 id="productModalTitle">Thêm sản phẩm</h3>
+        <button class="modal-close" onclick="closeModal('productModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="productId">
+        <div class="form-group"><label>Tên sản phẩm</label><input id="productName"></div>
+        <div class="form-row">
+          <div class="form-group"><label>Danh mục</label><select id="productCategory"></select></div>
+          <div class="form-group"><label>Badge</label><input id="productBadge" placeholder="VD: Bán chạy, Premium">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Giá (₫)</label><input type="number" id="productPrice"></div>
+          <div class="form-group"><label>Giá gốc (₫)</label><input type="number" id="productOriginalPrice"></div>
+        </div>
+        <div class="form-group"><label>Mô tả ngắn</label><input id="productShortDesc"></div>
+        <div class="form-group"><label>Mô tả chi tiết</label><textarea id="productLongDesc"></textarea></div>
+
+        <!-- Image Upload Zone -->
+        <div class="form-group">
+          <label>Hình ảnh sản phẩm <small style="color:var(--text-secondary)">(tự động chuyển sang WebP cho
+              SEO)</small></label>
+          <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+            <input type="file" id="fileInput" multiple accept="image/*">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <p>Kéo thả ảnh vào đây hoặc <em>nhấp để chọn</em></p>
+            <p><small>JPG, PNG, WebP • Tự động tối ưu hóa WebP</small></p>
+            <div class="upload-progress" id="uploadProgress"></div>
+          </div>
+          <div class="image-preview-list" id="imagePreviewList"></div>
+        </div>
+
+        <div class="form-group"><label>Đặc điểm (mỗi dòng 1 mục)</label><textarea id="productFeatures"></textarea></div>
+        <div class="form-group"><label>Dịp phù hợp (phân cách bằng dấu phẩy)</label><input id="productOccasions"
+            placeholder="Đám cưới, Sinh nhật"></div>
+
+        <!-- SEO Section -->
+        <div class="seo-section">
+          <h4><i class="fas fa-search"></i> SEO / Metadata</h4>
+          <div class="form-group"><label>Slug (URL)</label><input id="productSlug" placeholder="tu-dong-tao-tu-ten"
+              style="font-family:monospace;font-size:0.82rem"></div>
+          <div class="form-group"><label>Meta Title</label><input id="productMetaTitle"
+              placeholder="Để trống = dùng tên sản phẩm"></div>
+          <div class="form-group"><label>Meta Description</label><textarea id="productMetaDesc" rows="2"
+              placeholder="Để trống = dùng mô tả ngắn"></textarea></div>
+          <div class="seo-preview" id="seoPreview">
+            <div class="seo-title" id="seoPreviewTitle">Tên sản phẩm - BloomStore</div>
+            <div class="seo-url" id="seoPreviewUrl">bloomstore.vn/san-pham/slug</div>
+            <div class="seo-desc" id="seoPreviewDesc">Mô tả sản phẩm sẽ hiển thị ở đây...</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" style="background:var(--bg-secondary);color:var(--text-secondary)"
+          onclick="closeModal('productModal')">Hủy</button>
+        <button class="btn btn-primary" onclick="saveProduct()">Lưu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Category Modal -->
+  <div class="modal-overlay" id="categoryModal">
+    <div class="modal" style="width:450px">
+      <div class="modal-header">
+        <h3 id="categoryModalTitle">Thêm danh mục</h3>
+        <button class="modal-close" onclick="closeModal('categoryModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="categoryId">
+        <div class="form-group"><label>Slug</label><input id="categorySlug" placeholder="wedding"></div>
+        <div class="form-group"><label>Tên</label><input id="categoryName" placeholder="Hoa cưới"></div>
+        <div class="form-group"><label>Mô tả</label><textarea id="categoryDesc"></textarea></div>
+        <div class="form-group"><label>Danh mục cha</label><select id="categoryParent"><option value="">(Không - danh mục gốc)</option></select></div>
+        <div class="form-group">
+          <label>Ảnh đại diện <small style="color:var(--text-secondary)">(upload hoặc nhập URL)</small></label>
+          <div class="upload-zone" id="categoryUploadZone" onclick="document.getElementById('categoryFileInput').click()" style="padding:12px;text-align:center;border:2px dashed var(--border);border-radius:8px;cursor:pointer;margin-bottom:8px">
+            <input type="file" id="categoryFileInput" accept="image/*" style="display:none" onchange="handleCategoryThumbUpload(this.files)">
+            <i class="fas fa-cloud-upload-alt"></i> Nhấp để chọn ảnh
+          </div>
+          <input id="categoryThumbnail" placeholder="https://... hoặc tự động sau khi upload">
+          <img id="categoryThumbPreview" style="max-width:100%;max-height:150px;margin-top:8px;border-radius:8px;display:none">
+        </div>
+        <div class="form-group" style="display:flex;align-items:center;gap:8px">
+          <input type="checkbox" id="categoryShowInMenu" style="width:auto">
+          <label for="categoryShowInMenu" style="margin:0">Hiển thị trên menu</label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" style="background:var(--bg-secondary);color:var(--text-secondary)"
+          onclick="closeModal('categoryModal')">Hủy</button>
+        <button class="btn btn-primary" onclick="saveCategory()">Lưu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const API = window.location.origin;
+    let token = localStorage.getItem('bs_token') || '';
+    let categories = [];
+    let products = [];
+
+    // ========== AUTH ==========
+    function checkAuth() {
+      if (token) {
+        document.getElementById('loginOverlay').style.display = 'none';
+        document.getElementById('app').style.display = 'flex';
+        loadDashboard();
+      }
+    }
+
+    async function doLogin() {
+      const username = document.getElementById('loginUsername').value;
+      const password = document.getElementById('loginPassword').value;
+      try {
+        const res = await fetch(`${API}/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        token = data.access_token;
+        localStorage.setItem('bs_token', token);
+        checkAuth();
+      } catch {
+        document.getElementById('loginError').style.display = 'block';
+      }
+    }
+
+    function doLogout() {
+      token = '';
+      localStorage.removeItem('bs_token');
+      document.getElementById('loginOverlay').style.display = 'flex';
+      document.getElementById('app').style.display = 'none';
+    }
+
+    // ========== NAV ==========
+    const pageTitles = { dashboard: 'Dashboard', products: 'Sản phẩm', categories: 'Danh mục', reviews: 'Đánh giá', posts: 'Bài viết', gallery: 'Bộ sưu tập', settings: 'Cài đặt', password: 'Đổi mật khẩu' };
+    function showPage(page) {
+      document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+      const el = document.getElementById('page-' + page);
+      if (el) { el.classList.add('active'); el.style.animation = 'none'; el.offsetHeight; el.style.animation = ''; }
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      if (event && event.currentTarget) event.currentTarget.classList.add('active');
+      document.getElementById('currentPageTitle').textContent = pageTitles[page] || page;
+      if (page === 'dashboard') loadDashboard();
+      if (page === 'products') loadProducts();
+      if (page === 'categories') loadCategories();
+      if (page === 'reviews') loadReviews();
+      if (page === 'posts') loadPosts();
+      if (page === 'gallery') loadGallery();
+      if (page === 'settings') loadSettings();
+    }
+
+    // ========== SIDEBAR TOGGLE ==========
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('collapsed');
+    }
+
+    // ========== WELCOME DATE ==========
+    function updateWelcomeDate() {
+      const now = new Date();
+      const days = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'];
+      const months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
+      const el = document.getElementById('welcomeDate');
+      if (el) el.textContent = `${days[now.getDay()]}, ${now.getDate()}/${months[now.getMonth()]}/${now.getFullYear()} • Chúc bạn một ngày làm việc hiệu quả!`;
+    }
+
+    // ========== API helpers ==========
+    function authHeaders() {
+      return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+    }
+
+    /** Escape HTML to prevent XSS when using innerHTML */
+    function esc(str) {
+      if (str == null) return '';
+      const div = document.createElement('div');
+      div.appendChild(document.createTextNode(String(str)));
+      return div.innerHTML;
+    }
+
+    async function apiFetch(url, opts = {}) {
+      const res = await fetch(API + url, { ...opts, headers: { ...authHeaders(), ...opts.headers } });
+      if (res.status === 401) { doLogout(); throw new Error('Unauthorized'); }
+      return res;
+    }
+
+    function formatPrice(n) {
+      return new Intl.NumberFormat('vi-VN').format(n) + ' ₫';
+    }
+
+    function starsHtml(rating) {
+      let s = '';
+      for (let i = 0; i < 5; i++) s += `<i class="fas fa-star" style="color:${i < rating ? '#f0c040' : '#555'}"></i>`;
+      return s;
+    }
+
+    function showToast(msg, type = 'success') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = `toast toast-${type} show`;
+      setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+    // ========== DASHBOARD ==========
+    async function loadDashboard() {
+      updateWelcomeDate();
+      try {
+        const [prodRes, catRes] = await Promise.all([
+          apiFetch('/api/products'), apiFetch('/api/categories')
+        ]);
+        products = await prodRes.json();
+        categories = await catRes.json();
+
+        document.getElementById('statProducts').textContent = products.length;
+        document.getElementById('statCategories').textContent = categories.length;
+
+        let totalReviews = 0, totalPrice = 0;
+        products.forEach(p => { totalReviews += p.reviewCount || 0; totalPrice += Number(p.price); });
+        document.getElementById('statReviews').textContent = totalReviews;
+        document.getElementById('statAvgPrice').textContent = products.length ? new Intl.NumberFormat('vi-VN').format(Math.round(totalPrice / products.length)) : '0';
+
+        // Update review badge
+        const badge = document.getElementById('reviewBadge');
+        if (badge && totalReviews > 0) { badge.textContent = totalReviews; badge.style.display = 'inline'; }
+
+        const tbody = document.getElementById('dashboardProducts');
+        tbody.innerHTML = products.slice(0, 5).map(p => `<tr>
+      <td><img src="${p.images?.[0]?.url || ''}" alt="${p.name}"></td>
+      <td><strong>${p.name}</strong></td>
+      <td>${p.category?.name || '-'}</td>
+      <td>${formatPrice(p.price)}</td>
+      <td>${starsHtml(p.rating)}</td>
+    </tr>`).join('');
+      } catch (e) { console.error(e); }
+    }
+
+    // ========== PRODUCTS ==========
+    async function loadProducts() {
+      try {
+        const [prodRes, catRes] = await Promise.all([apiFetch('/api/products'), apiFetch('/api/categories')]);
+        products = await prodRes.json();
+        categories = await catRes.json();
+
+        const tbody = document.getElementById('productsTable');
+        if (!products.length) { tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><i class="fas fa-box-open"></i>Chưa có sản phẩm</div></td></tr>'; return; }
+        tbody.innerHTML = products.map(p => `<tr>
+      <td><img src="${esc(p.images?.[0]?.url)}" alt="${esc(p.name)}"></td>
+      <td><strong>${esc(p.name)}</strong><br><small style="color:var(--text-secondary)">${esc(p.shortDescription)}</small></td>
+      <td><span class="badge badge-info">${esc(p.category?.name) || '-'}</span></td>
+      <td><strong>${formatPrice(p.price)}</strong></td>
+      <td>${p.originalPrice ? formatPrice(p.originalPrice) : '-'}</td>
+      <td>${p.badge ? `<span class="badge badge-warning">${esc(p.badge)}</span>` : '-'}</td>
+      <td>${starsHtml(p.rating)} <small>(${p.reviewCount})</small></td>
+      <td>
+        <button class="btn btn-sm btn-edit" onclick="editProduct(${p.id})"><i class="fas fa-edit"></i></button>
+        <button class="btn btn-sm btn-delete" onclick="deleteProduct(${p.id})"><i class="fas fa-trash"></i></button>
+      </td>
+    </tr>`).join('');
+        document.getElementById('productCount').textContent = `Hiển thị ${products.length} sản phẩm`;
+      } catch (e) { console.error(e); }
+    }
+
+    function filterProducts() {
+      const q = document.getElementById('productSearch').value.toLowerCase();
+      const rows = document.querySelectorAll('#productsTable tr');
+      let count = 0;
+      rows.forEach(r => {
+        const match = r.textContent.toLowerCase().includes(q);
+        r.style.display = match ? '' : 'none';
+        if (match) count++;
+      });
+      document.getElementById('productCount').textContent = `Hiển thị ${count} sản phẩm`;
+    }
+
+    // ========== IMAGE UPLOAD ==========
+    let uploadedImages = []; // [{url, altText, originalName}]
+
+    function setupUploadZone() {
+      const zone = document.getElementById('uploadZone');
+      const input = document.getElementById('fileInput');
+      if (!zone || !input) return;
+
+      input.addEventListener('change', e => handleFiles(e.target.files));
+
+      zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+      zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+      zone.addEventListener('drop', e => {
+        e.preventDefault();
+        zone.classList.remove('drag-over');
+        handleFiles(e.dataTransfer.files);
+      });
+    }
+
+    async function handleFiles(files) {
+      if (!files.length) return;
+      const progress = document.getElementById('uploadProgress');
+      progress.textContent = `Đang tải lên ${files.length} ảnh...`;
+
+      const formData = new FormData();
+      for (const f of files) formData.append('files', f);
+
+      try {
+        const res = await fetch(API + '/api/upload', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` },
+          body: formData,
+        });
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+
+        for (const f of data.files) {
+          uploadedImages.push({ url: f.url, altText: '', originalName: f.originalName });
+        }
+        renderImagePreviews();
+        progress.textContent = `✓ ${data.files.length} ảnh đã tải lên (WebP)`;
+        setTimeout(() => progress.textContent = '', 3000);
+      } catch (e) {
+        progress.textContent = '❌ Lỗi tải ảnh';
+        showToast('Lỗi tải ảnh', 'error');
+      }
+      document.getElementById('fileInput').value = '';
+    }
+
+    function renderImagePreviews() {
+      const list = document.getElementById('imagePreviewList');
+      list.innerHTML = uploadedImages.map((img, i) => `
+        <div class="image-preview-item">
+          <img src="${img.url}" alt="${img.altText || ''}">
+          <button class="remove-img" onclick="removeImage(${i})">&times;</button>
+          <span class="img-badge">WebP</span>
+        </div>
+      `).join('');
+    }
+
+    function removeImage(index) {
+      uploadedImages.splice(index, 1);
+      renderImagePreviews();
+    }
+
+    function updateSeoPreview() {
+      const name = document.getElementById('productName')?.value || 'Tên sản phẩm';
+      const metaTitle = document.getElementById('productMetaTitle')?.value;
+      const slug = document.getElementById('productSlug')?.value || 'slug';
+      const metaDesc = document.getElementById('productMetaDesc')?.value || document.getElementById('productShortDesc')?.value || 'Mô tả sản phẩm...';
+      document.getElementById('seoPreviewTitle').textContent = (metaTitle || name) + ' - BloomStore';
+      document.getElementById('seoPreviewUrl').textContent = `bloomstore.vn/san-pham/${slug}`;
+      document.getElementById('seoPreviewDesc').textContent = metaDesc.substring(0, 160);
+    }
+
+    function openProductModal(product = null) {
+      document.getElementById('productModalTitle').textContent = product ? 'Sửa sản phẩm' : 'Thêm sản phẩm';
+      document.getElementById('productId').value = product?.id || '';
+      document.getElementById('productName').value = product?.name || '';
+      document.getElementById('productBadge').value = product?.badge || '';
+      document.getElementById('productPrice').value = product?.price || '';
+      document.getElementById('productOriginalPrice').value = product?.originalPrice || '';
+      document.getElementById('productShortDesc').value = product?.shortDescription || '';
+      document.getElementById('productLongDesc').value = product?.longDescription || '';
+      document.getElementById('productFeatures').value = (product?.features || []).join('\n');
+      document.getElementById('productOccasions').value = (product?.occasions || []).join(', ');
+
+      // SEO fields
+      document.getElementById('productSlug').value = product?.slug || '';
+      document.getElementById('productMetaTitle').value = product?.metaTitle || '';
+      document.getElementById('productMetaDesc').value = product?.metaDescription || '';
+
+      // Images
+      uploadedImages = (product?.images || []).map(img => ({ url: img.url, altText: img.altText || '', originalName: '' }));
+      renderImagePreviews();
+
+      // Populate category dropdown
+      const sel = document.getElementById('productCategory');
+      sel.innerHTML = categories.map(c => `<option value="${c.id}" ${product?.categoryId === c.id ? 'selected' : ''}>${esc(c.name)}</option>`).join('');
+
+      // Live SEO preview
+      updateSeoPreview();
+      ['productName', 'productSlug', 'productMetaTitle', 'productMetaDesc', 'productShortDesc'].forEach(id => {
+        document.getElementById(id)?.addEventListener('input', updateSeoPreview);
+      });
+
+      setupUploadZone();
+      document.getElementById('productModal').classList.add('show');
+    }
+
+    async function editProduct(id) {
+      try {
+        const res = await apiFetch(`/api/products/${id}`);
+        const product = await res.json();
+        openProductModal(product);
+      } catch (e) { showToast('Lỗi tải sản phẩm', 'error'); }
+    }
+
+    async function saveProduct() {
+      const id = document.getElementById('productId').value;
+      const body = {
+        name: document.getElementById('productName').value,
+        slug: document.getElementById('productSlug').value || undefined,
+        categoryId: parseInt(document.getElementById('productCategory').value),
+        badge: document.getElementById('productBadge').value || undefined,
+        price: parseInt(document.getElementById('productPrice').value),
+        originalPrice: parseInt(document.getElementById('productOriginalPrice').value) || undefined,
+        shortDescription: document.getElementById('productShortDesc').value,
+        longDescription: document.getElementById('productLongDesc').value,
+        imageUrls: uploadedImages.map(i => i.url),
+        imageAlts: uploadedImages.map(i => i.altText || document.getElementById('productName').value),
+        features: document.getElementById('productFeatures').value.split('\n').map(s => s.trim()).filter(Boolean),
+        occasions: document.getElementById('productOccasions').value.split(',').map(s => s.trim()).filter(Boolean),
+        metaTitle: document.getElementById('productMetaTitle').value || undefined,
+        metaDescription: document.getElementById('productMetaDesc').value || undefined,
+      };
+
+      try {
+        await apiFetch(id ? `/api/products/${id}` : '/api/products', {
+          method: id ? 'PATCH' : 'POST',
+          body: JSON.stringify(body)
+        });
+        closeModal('productModal');
+        showToast(id ? 'Đã cập nhật sản phẩm' : 'Đã thêm sản phẩm');
+        loadProducts();
+      } catch (e) { showToast('Lỗi lưu sản phẩm', 'error'); }
+    }
+
+    async function deleteProduct(id) {
+      if (!confirm('Xóa sản phẩm này?')) return;
+      try {
+        await apiFetch(`/api/products/${id}`, { method: 'DELETE' });
+        showToast('Đã xóa sản phẩm');
+        loadProducts();
+      } catch (e) { showToast('Lỗi xóa', 'error'); }
+    }
+
+    // ========== CATEGORIES ==========
+    async function loadCategories() {
+      try {
+        const res = await apiFetch('/api/categories');
+        categories = await res.json();
+        const tbody = document.getElementById('categoriesTable');
+        if (!categories.length) { tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><i class="fas fa-tags"></i>Chưa có danh mục</div></td></tr>'; return; }
+        const parentMap = {};
+        categories.forEach(c => { parentMap[c.id] = c.name; });
+        tbody.innerHTML = categories.map(c => `<tr>
+      <td>${c.id}</td>
+      <td>${c.thumbnail ? `<img src="${esc(c.thumbnail)}" style="width:50px;height:50px;object-fit:cover;border-radius:8px">` : '<span style="color:var(--text-secondary)">-</span>'}</td>
+      <td><code>${esc(c.slug)}</code></td>
+      <td><strong>${esc(c.name)}</strong>${c.parentId ? `<br><small style="color:var(--text-muted)">↳ ${esc(parentMap[c.parentId] || '')}</small>` : ''}</td>
+      <td>${esc(c.description) || '-'}</td>
+      <td>
+        <label class="toggle-switch" style="margin:0">
+          <input type="checkbox" ${c.showInMenu ? 'checked' : ''} onchange="toggleMenuVisibility(${c.id}, this.checked)">
+          <span class="toggle-slider"></span>
+        </label>
+      </td>
+      <td>
+        <button class="btn btn-sm btn-edit" onclick="editCategory(${c.id})"><i class="fas fa-edit"></i></button>
+        <button class="btn btn-sm btn-delete" onclick="deleteCategory(${c.id})"><i class="fas fa-trash"></i></button>
+      </td>
+    </tr>`).join('');
+      } catch (e) { console.error(e); }
+    }
+
+    async function handleCategoryThumbUpload(files) {
+      if (!files.length) return;
+      const formData = new FormData();
+      formData.append('files', files[0]);
+      try {
+        const res = await fetch(API + '/api/upload', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` },
+          body: formData,
+        });
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        if (data.files && data.files.length > 0) {
+          document.getElementById('categoryThumbnail').value = data.files[0].url;
+          const preview = document.getElementById('categoryThumbPreview');
+          preview.src = data.files[0].url;
+          preview.style.display = 'block';
+          showToast('Đã tải ảnh lên');
+        }
+      } catch (e) { showToast('Lỗi tải ảnh', 'error'); }
+      document.getElementById('categoryFileInput').value = '';
+    }
+
+    function openCategoryModal(cat = null) {
+      document.getElementById('categoryModalTitle').textContent = cat ? 'Sửa danh mục' : 'Thêm danh mục';
+      document.getElementById('categoryId').value = cat?.id || '';
+      document.getElementById('categorySlug').value = cat?.slug || '';
+      document.getElementById('categoryName').value = cat?.name || '';
+      document.getElementById('categoryDesc').value = cat?.description || '';
+      document.getElementById('categoryShowInMenu').checked = cat?.showInMenu || false;
+      document.getElementById('categoryThumbnail').value = cat?.thumbnail || '';
+      const preview = document.getElementById('categoryThumbPreview');
+      if (cat?.thumbnail) { preview.src = cat.thumbnail; preview.style.display = 'block'; }
+      else { preview.style.display = 'none'; }
+      // Populate parent selector
+      const parentSelect = document.getElementById('categoryParent');
+      parentSelect.innerHTML = '<option value="">(Không - danh mục gốc)</option>';
+      categories.filter(c => !c.parentId && c.id !== cat?.id).forEach(c => {
+        parentSelect.innerHTML += `<option value="${c.id}" ${cat?.parentId === c.id ? 'selected' : ''}>${esc(c.name)}</option>`;
+      });
+      document.getElementById('categoryModal').classList.add('show');
+    }
+
+    async function editCategory(id) {
+      const cat = categories.find(c => c.id === id);
+      if (cat) openCategoryModal(cat);
+    }
+
+    async function toggleMenuVisibility(id, checked) {
+      try {
+        await apiFetch(`/api/categories/${id}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ showInMenu: checked })
+        });
+        showToast(checked ? 'Đã đính lên menu' : 'Đã gỡ khỏi menu');
+      } catch (e) { showToast('Lỗi cập nhật', 'error'); loadCategories(); }
+    }
+
+    async function saveCategory() {
+      const id = document.getElementById('categoryId').value;
+      const parentVal = document.getElementById('categoryParent').value;
+      const body = {
+        slug: document.getElementById('categorySlug').value,
+        name: document.getElementById('categoryName').value,
+        description: document.getElementById('categoryDesc').value,
+        showInMenu: document.getElementById('categoryShowInMenu').checked,
+        thumbnail: document.getElementById('categoryThumbnail').value || null,
+        parentId: parentVal ? parseInt(parentVal) : null,
+      };
+      try {
+        await apiFetch(id ? `/api/categories/${id}` : '/api/categories', {
+          method: id ? 'PATCH' : 'POST',
+          body: JSON.stringify(body)
+        });
+        closeModal('categoryModal');
+        showToast(id ? 'Đã cập nhật danh mục' : 'Đã thêm danh mục');
+        loadCategories();
+      } catch (e) { showToast('Lỗi lưu danh mục', 'error'); }
+    }
+
+    async function deleteCategory(id) {
+      if (!confirm('Xóa danh mục này?')) return;
+      try {
+        await apiFetch(`/api/categories/${id}`, { method: 'DELETE' });
+        showToast('Đã xóa danh mục');
+        loadCategories();
+      } catch (e) { showToast('Lỗi xóa', 'error'); }
+    }
+
+    // ========== REVIEWS ==========
+    async function loadReviews() {
+      try {
+        const prodRes = await apiFetch('/api/products');
+        const prods = await prodRes.json();
+        let allReviews = [];
+        for (const p of prods) {
+          const res = await apiFetch(`/api/reviews?productId=${p.id}`);
+          const reviews = await res.json();
+          reviews.forEach(r => { r._productName = p.name; });
+          allReviews = allReviews.concat(reviews);
+        }
+
+        const tbody = document.getElementById('reviewsTable');
+        if (!allReviews.length) { tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><i class="fas fa-star"></i>Chưa có đánh giá</div></td></tr>'; return; }
+        tbody.innerHTML = allReviews.map(r => `<tr>
+      <td>${esc(r._productName)}</td>
+      <td><strong>${esc(r.reviewerName)}</strong>${r.verified ? ' <i class="fas fa-check-circle" style="color:var(--success);font-size:0.75rem"></i>' : ''}</td>
+      <td>${starsHtml(r.rating)}</td>
+      <td style="max-width:300px">${esc(r.comment) || '-'}</td>
+      <td>${new Date(r.reviewDate).toLocaleDateString('vi-VN')}</td>
+      <td><button class="btn btn-sm btn-delete" onclick="deleteReview(${r.id})"><i class="fas fa-trash"></i></button></td>
+    </tr>`).join('');
+        document.getElementById('reviewCount').textContent = `Hiển thị ${allReviews.length} đánh giá`;
+      } catch (e) { console.error(e); }
+    }
+
+    function filterReviews() {
+      const q = document.getElementById('reviewSearch').value.toLowerCase();
+      const rows = document.querySelectorAll('#reviewsTable tr');
+      let count = 0;
+      rows.forEach(r => {
+        const match = r.textContent.toLowerCase().includes(q);
+        r.style.display = match ? '' : 'none';
+        if (match) count++;
+      });
+      document.getElementById('reviewCount').textContent = `Hiển thị ${count} đánh giá`;
+    }
+
+    async function deleteReview(id) {
+      if (!confirm('Xóa đánh giá này?')) return;
+      try {
+        await apiFetch(`/api/reviews/${id}`, { method: 'DELETE' });
+        showToast('Đã xóa đánh giá');
+        loadReviews();
+      } catch (e) { showToast('Lỗi xóa', 'error'); }
+    }
+
+    // ========== SETTINGS ==========
+    const SETTING_KEYS = ['shop_name', 'slogan', 'logo_url', 'favicon_url', 'meta_title', 'meta_description', 'meta_keywords', 'og_image', 'phone', 'email', 'address', 'google_map_url', 'zalo_url', 'facebook_url', 'instagram_url', 'google_verification', 'bing_verification', 'google_analytics_id'];
+    const MENU_TOGGLE_KEYS = ['show_menu_gallery', 'show_menu_blog', 'show_menu_contact', 'hero_overlay_enabled'];
+
+    async function loadSettings() {
+      try {
+        const res = await apiFetch('/api/settings');
+        const settings = await res.json();
+        SETTING_KEYS.forEach(key => {
+          const el = document.getElementById('setting_' + key);
+          if (el) el.value = settings[key] || '';
+        });
+        const logoPreview = document.getElementById('settingLogoPreview');
+        if (settings['logo_url']) {
+          logoPreview.src = settings['logo_url'].startsWith('http') ? settings['logo_url'] : API + settings['logo_url'];
+          logoPreview.style.display = 'block';
+        } else {
+          logoPreview.style.display = 'none';
+        }
+        MENU_TOGGLE_KEYS.forEach(key => {
+          const el = document.getElementById('setting_' + key);
+          if (el) el.checked = settings[key] === 'true' || settings[key] === true;
+        });
+      } catch (e) { console.error(e); }
+    }
+
+    async function changePassword() {
+      const currentPassword = document.getElementById('currentPassword').value;
+      const newPassword = document.getElementById('newPassword').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      if (!currentPassword || !newPassword || !confirmPassword) {
+        showToast('Vui lòng điền đầy đủ thông tin', 'error');
+        return;
+      }
+      if (newPassword.length < 6) {
+        showToast('Mật khẩu mới phải có ít nhất 6 ký tự', 'error');
+        return;
+      }
+      if (newPassword !== confirmPassword) {
+        showToast('Mật khẩu xác nhận không khớp', 'error');
+        return;
+      }
+      try {
+        const res = await apiFetch('/api/auth/change-password', {
+          method: 'PUT',
+          body: JSON.stringify({ currentPassword, newPassword, confirmPassword })
+        });
+        if (!res.ok) {
+          const err = await res.json();
+          showToast(err.message || 'Lỗi đổi mật khẩu', 'error');
+          return;
+        }
+        showToast('Đổi mật khẩu thành công!');
+        document.getElementById('currentPassword').value = '';
+        document.getElementById('newPassword').value = '';
+        document.getElementById('confirmPassword').value = '';
+      } catch (e) { showToast('Lỗi đổi mật khẩu', 'error'); }
+    }
+
+    async function saveSettings() {
+      const settings = SETTING_KEYS.map(key => ({
+        key,
+        value: document.getElementById('setting_' + key)?.value || ''
+      }));
+      MENU_TOGGLE_KEYS.forEach(key => {
+        settings.push({ key, value: document.getElementById('setting_' + key)?.checked ? 'true' : 'false' });
+      });
+      try {
+        await apiFetch('/api/settings', {
+          method: 'PUT',
+          body: JSON.stringify({ settings })
+        });
+        showToast('Đã lưu cài đặt thành công');
+      } catch (e) { showToast('Lỗi lưu cài đặt', 'error'); }
+    }
+
+    async function handleSettingLogoUpload(files) {
+      if (!files.length) return;
+      const formData = new FormData();
+      formData.append('files', files[0]);
+      try {
+        const res = await fetch(API + '/api/upload', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` },
+          body: formData,
+        });
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        if (data.files && data.files.length > 0) {
+          const logoUrl = data.files[0].url;
+          document.getElementById('setting_logo_url').value = logoUrl;
+          const preview = document.getElementById('settingLogoPreview');
+          preview.src = logoUrl.startsWith('http') ? logoUrl : API + logoUrl;
+          preview.style.display = 'block';
+          showToast('Đã tải lên logo thành công');
+        }
+      } catch (e) { showToast('Lỗi tải ảnh logo', 'error'); }
+      document.getElementById('settingLogoFileInput').value = '';
+    }
+
+    // ========== POSTS CRUD ==========
+    async function loadPosts() {
+      try {
+        const res = await apiFetch('/api/posts/admin');
+        const posts = await res.json();
+        const tbody = document.getElementById('postsTableBody');
+        if (!posts.length) {
+          tbody.innerHTML = '<tr><td colspan="5" class="empty-state"><i class="fas fa-blog"></i> Chưa có bài viết nào</td></tr>';
+          return;
+        }
+        tbody.innerHTML = posts.map(p => `
+          <tr>
+            <td>
+              <div style="display:flex;align-items:center;gap:10px">
+                ${p.thumbnailUrl ? `<img src="${p.thumbnailUrl}" style="width:50px;height:35px;object-fit:cover;border-radius:6px">` : ''}
+                <div>
+                  <strong>${p.title}</strong>
+                  <div style="font-size:12px;color:var(--text-muted)">${p.slug}</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="badge ${p.isPublished ? 'badge-success' : 'badge-warning'}">${p.isPublished ? 'Đã đăng' : 'Nháp'}</span></td>
+            <td>${(p.tags || []).map(t => `<span style="background:var(--bg-secondary);padding:2px 8px;border-radius:10px;font-size:11px;margin:2px">${t}</span>`).join('')}</td>
+            <td>${p.publishedAt ? new Date(p.publishedAt).toLocaleDateString('vi-VN') : '—'}</td>
+            <td>
+              <button class="btn-icon" title="Sửa" onclick="editPost(${p.id})"><i class="fas fa-edit"></i></button>
+              <button class="btn-icon" title="Xóa" onclick="deletePost(${p.id},'${p.title.replace(/'/g, "\\'")}')"><i class="fas fa-trash"></i></button>
+            </td>
+          </tr>
+        `).join('');
+      } catch (e) { showToast('Lỗi tải danh sách bài viết', 'error'); }
+    }
+
+    function openPostModal() {
+      document.getElementById('postModalTitle').textContent = 'Tạo bài viết mới';
+      document.getElementById('postId').value = '';
+      document.getElementById('postTitle').value = '';
+      document.getElementById('postSlug').value = '';
+      document.getElementById('postExcerpt').value = '';
+      document.getElementById('postContent').value = '';
+      document.getElementById('postThumbnail').value = '';
+      document.getElementById('postTags').value = '';
+      document.getElementById('postMetaTitle').value = '';
+      document.getElementById('postMetaDesc').value = '';
+      document.getElementById('postPublished').checked = false;
+      document.getElementById('postModal').style.display = 'flex';
+    }
+
+    function closePostModal() {
+      document.getElementById('postModal').style.display = 'none';
+    }
+
+    async function editPost(id) {
+      try {
+        const res = await apiFetch('/api/posts/' + id);
+        const p = await res.json();
+        document.getElementById('postModalTitle').textContent = 'Sửa bài viết';
+        document.getElementById('postId').value = p.id;
+        document.getElementById('postTitle').value = p.title || '';
+        document.getElementById('postSlug').value = p.slug || '';
+        document.getElementById('postExcerpt').value = p.excerpt || '';
+        document.getElementById('postContent').value = p.content || '';
+        document.getElementById('postThumbnail').value = p.thumbnailUrl || '';
+        document.getElementById('postTags').value = (p.tags || []).join(', ');
+        document.getElementById('postMetaTitle').value = p.metaTitle || '';
+        document.getElementById('postMetaDesc').value = p.metaDescription || '';
+        document.getElementById('postPublished').checked = p.isPublished;
+        document.getElementById('postModal').style.display = 'flex';
+      } catch (e) { showToast('Lỗi tải bài viết', 'error'); }
+    }
+
+    async function savePost() {
+      const id = document.getElementById('postId').value;
+      const title = document.getElementById('postTitle').value.trim();
+      const content = document.getElementById('postContent').value.trim();
+      if (!title || !content) { showToast('Vui lòng nhập tiêu đề và nội dung', 'error'); return; }
+      const tagsStr = document.getElementById('postTags').value.trim();
+      const body = {
+        title,
+        slug: document.getElementById('postSlug').value.trim() || undefined,
+        excerpt: document.getElementById('postExcerpt').value.trim() || undefined,
+        content,
+        thumbnailUrl: document.getElementById('postThumbnail').value.trim() || undefined,
+        tags: tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(Boolean) : [],
+        metaTitle: document.getElementById('postMetaTitle').value.trim() || undefined,
+        metaDescription: document.getElementById('postMetaDesc').value.trim() || undefined,
+        isPublished: document.getElementById('postPublished').checked,
+      };
+      try {
+        if (id) {
+          await apiFetch('/api/posts/' + id, { method: 'PATCH', body: JSON.stringify(body) });
+          showToast('Đã cập nhật bài viết');
+        } else {
+          await apiFetch('/api/posts', { method: 'POST', body: JSON.stringify(body) });
+          showToast('Đã tạo bài viết mới');
+        }
+        closePostModal();
+        loadPosts();
+      } catch (e) { showToast('Lỗi lưu bài viết: ' + e.message, 'error'); }
+    }
+
+    async function deletePost(id, title) {
+      if (!confirm('Xóa bài viết "' + title + '"?')) return;
+      try {
+        await apiFetch('/api/posts/' + id, { method: 'DELETE' });
+        showToast('Đã xóa bài viết');
+        loadPosts();
+      } catch (e) { showToast('Lỗi xóa bài viết', 'error'); }
+    }
+
+    // ========== GALLERY ==========
+    let galleryItems = [];
+
+    async function loadGallery() {
+      try {
+        const res = await apiFetch('/api/gallery');
+        galleryItems = await res.json();
+        const grid = document.getElementById('galleryGrid');
+        if (!galleryItems.length) {
+          grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><i class="fas fa-images"></i> Chưa có ảnh nào</div>';
+          document.getElementById('galleryCount').textContent = '';
+          return;
+        }
+        grid.innerHTML = galleryItems.map(item => `
+          <div style="background:var(--bg-secondary);border-radius:12px;overflow:hidden;border:1px solid var(--border);transition:transform 0.2s">
+            <div style="position:relative;padding-top:75%;overflow:hidden">
+              <img src="${esc(item.imageUrl)}" alt="${esc(item.title)}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover">
+              <div style="position:absolute;top:8px;right:8px;display:flex;gap:4px">
+                <button class="btn btn-sm btn-edit" onclick="editGalleryItem(${item.id})" style="background:rgba(0,0,0,0.6);color:#fff;border:none;border-radius:6px;padding:4px 8px;cursor:pointer"><i class="fas fa-edit"></i></button>
+                <button class="btn btn-sm btn-delete" onclick="deleteGalleryItem(${item.id})" style="background:rgba(220,53,69,0.8);color:#fff;border:none;border-radius:6px;padding:4px 8px;cursor:pointer"><i class="fas fa-trash"></i></button>
+              </div>
+              ${item.category ? `<span style="position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,0.6);color:#fff;font-size:11px;padding:2px 8px;border-radius:10px">${esc(item.category)}</span>` : ''}
+            </div>
+            <div style="padding:10px">
+              <div style="font-weight:600;font-size:0.9rem">${esc(item.title)}</div>
+              ${item.description ? `<div style="font-size:0.78rem;color:var(--text-secondary);margin-top:4px">${esc(item.description).substring(0, 60)}</div>` : ''}
+              <div style="font-size:0.72rem;color:var(--text-muted);margin-top:6px"><i class="fas fa-heart" style="color:#e74c3c"></i> ${item.likes || 0}</div>
+            </div>
+          </div>
+        `).join('');
+        document.getElementById('galleryCount').textContent = `${galleryItems.length} ảnh`;
+      } catch (e) { console.error(e); }
+    }
+
+    function openGalleryModal(item = null) {
+      document.getElementById('galleryModalTitle').textContent = item ? 'Sửa ảnh' : 'Thêm ảnh';
+      document.getElementById('galleryItemId').value = item?.id || '';
+      document.getElementById('galleryTitle').value = item?.title || '';
+      document.getElementById('galleryDescription').value = item?.description || '';
+      document.getElementById('galleryCategory').value = item?.category || '';
+      document.getElementById('galleryImageUrl').value = item?.imageUrl || '';
+      const preview = document.getElementById('galleryPreviewImg');
+      if (item?.imageUrl) { preview.src = item.imageUrl; preview.style.display = 'block'; }
+      else { preview.style.display = 'none'; }
+
+      // File upload handler
+      const fileInput = document.getElementById('galleryFileInput');
+      fileInput.onchange = async (e) => {
+        if (!e.target.files.length) return;
+        const formData = new FormData();
+        formData.append('files', e.target.files[0]);
+        try {
+          const res = await fetch(API + '/api/upload', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` },
+            body: formData,
+          });
+          const data = await res.json();
+          if (data.files?.[0]?.url) {
+            document.getElementById('galleryImageUrl').value = data.files[0].url;
+            preview.src = data.files[0].url;
+            preview.style.display = 'block';
+            showToast('Ảnh đã upload thành công');
+          }
+        } catch (err) { showToast('Lỗi upload ảnh', 'error'); }
+      };
+
+      // Live preview on URL change
+      document.getElementById('galleryImageUrl').oninput = (e) => {
+        if (e.target.value) { preview.src = e.target.value; preview.style.display = 'block'; }
+        else { preview.style.display = 'none'; }
+      };
+
+      document.getElementById('galleryModal').classList.add('show');
+    }
+
+    async function editGalleryItem(id) {
+      const item = galleryItems.find(g => g.id === id);
+      if (item) openGalleryModal(item);
+    }
+
+    async function saveGalleryItem() {
+      const id = document.getElementById('galleryItemId').value;
+      const body = {
+        title: document.getElementById('galleryTitle').value,
+        description: document.getElementById('galleryDescription').value || undefined,
+        category: document.getElementById('galleryCategory').value || 'general',
+        imageUrl: document.getElementById('galleryImageUrl').value,
+      };
+      if (!body.title || !body.imageUrl) { showToast('Vui lòng nhập tiêu đề và URL ảnh', 'error'); return; }
+      try {
+        await apiFetch(id ? `/api/gallery/${id}` : '/api/gallery', {
+          method: id ? 'PATCH' : 'POST',
+          body: JSON.stringify(body)
+        });
+        closeModal('galleryModal');
+        showToast(id ? 'Đã cập nhật ảnh' : 'Đã thêm ảnh');
+        loadGallery();
+      } catch (e) { showToast('Lỗi lưu ảnh', 'error'); }
+    }
+
+    async function deleteGalleryItem(id) {
+      if (!confirm('Xóa ảnh này?')) return;
+      try {
+        await apiFetch(`/api/gallery/${id}`, { method: 'DELETE' });
+        showToast('Đã xóa ảnh');
+        loadGallery();
+      } catch (e) { showToast('Lỗi xóa', 'error'); }
+    }
+
+    // Init
+    document.addEventListener('keydown', e => { if (e.key === 'Enter' && document.getElementById('loginOverlay').style.display !== 'none') doLogin(); });
+    checkAuth();
+  </script>
+</body>
+
+</html>

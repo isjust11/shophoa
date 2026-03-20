@@ -1,0 +1,14 @@
+# BloomStore - Shop Hoa Online
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://shophoa.techcave.space/api/sitemap.xml
+
+# Disallow admin and API paths
+Disallow: /quanly/
+Disallow: /api/
+Allow: /api/sitemap.xml
+
+# Crawl-delay
+Crawl-delay: 1
