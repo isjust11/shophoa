@@ -43,7 +43,18 @@ docker compose up -d
 
 # Wait for DB
 echo "⏳ Waiting for database..."
-sleep 5
+sleep 8
+
+# ---------- 3b. Import Database Dump ----------
+DUMP_FILE="$APP_DIR/crawl/dump_bloomstore.sql"
+if [ -f "$DUMP_FILE" ]; then
+    echo "🗄️  Importing database dump..."
+    docker exec -i bloomstore-db mariadb \
+        -u"$DB_USER" -p"$DB_PASS" "$DB_NAME" \
+        < "$DUMP_FILE" && echo "✅ Database import done!" || echo "⚠️  DB import skipped (data may already exist)"
+else
+    echo "ℹ️  No dump file found at $DUMP_FILE, skipping import."
+fi
 
 # ---------- 4. Build Backend ----------
 echo "🔧 Building backend..."

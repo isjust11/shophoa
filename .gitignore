@@ -88,7 +88,7 @@ jspm_packages/
 backend/dist/
 
 # Uploads
-backend/public/uploads/
+# backend/public/uploads/
 
 # Logs
 logs/
