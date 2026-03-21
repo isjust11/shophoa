@@ -26,6 +26,7 @@ import { SitemapModule } from './sitemap/sitemap.module';
       charset: 'utf8mb4',
     }),
     ServeStaticModule.forRoot(
+      // Admin panel
       {
         rootPath: join(__dirname, '..', 'public', 'admin'),
         serveRoot: '/quanly',
@@ -33,12 +34,24 @@ import { SitemapModule } from './sitemap/sitemap.module';
           index: ['index.html'],
         },
       },
+      // Uploads (images)
       {
         rootPath: join(__dirname, '..', 'public', 'uploads'),
         serveRoot: '/uploads',
         serveStaticOptions: {
           index: false,
           maxAge: '30d',
+        },
+      },
+      // React frontend build — served at root '/'
+      // Backend serve luôn cả frontend khi chạy production (không cần serve package riêng)
+      {
+        rootPath: join(__dirname, '..', '..', 'build'),
+        serveRoot: '/',
+        exclude: ['/api*', '/uploads*', '/quanly*'],
+        serveStaticOptions: {
+          index: 'index.html',
+          fallthrough: true,
         },
       },
     ),
