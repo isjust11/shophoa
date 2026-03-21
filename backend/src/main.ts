@@ -17,7 +17,12 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Security headers
+  // Lưu ý: tắt hsts vì server chạy HTTP thuần (port 3000).
+  // HSTS chỉ nên bật khi đứng sau Nginx/HTTPS terminator.
   app.use(helmet({
+    // ❌ KHÔNG bật HSTS — nếu bật, browser sẽ tự upgrade tất cả request
+    //    sang https:// nhưng server chỉ listen HTTP → kết nối bị từ chối
+    hsts: false,
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
@@ -27,6 +32,8 @@ async function bootstrap() {
         fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
         imgSrc: ["'self'", "data:", "https:", "blob:"],
         connectSrc: ["'self'"],
+        // Tắt upgradeInsecureRequests — tránh browser tự đổi http→https trong CSP
+        upgradeInsecureRequests: null,
       },
     },
   }));
